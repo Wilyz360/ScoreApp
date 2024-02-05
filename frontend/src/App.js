@@ -6,13 +6,13 @@ import axios from "axios";
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [team, setTeam] = useState({});
+  const [teams, setTeams] = useState({});
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const { data: response } = await axios.get("http://localhost:4000/");
-        setTeam(response);
+        setTeams(response);
       } catch (error) {
         console.log(error.message);
       }
@@ -28,7 +28,9 @@ function App() {
       {!loading && (
         <div>
           <h1>Next Match</h1>
-          <Match team={team} />
+          {teams.map((data) => {
+            return <Match teams={data} />;
+          })}
         </div>
       )}
     </div>

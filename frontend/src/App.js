@@ -6,7 +6,7 @@ import Match from "./components/Match";
 function App() {
   return (
     <div className="App">
-      <Match local="Arsenal" away="Liverpool" date="Today" time="13:00" />
+      <Match local="Arsenal" away="Liverpool" date="Today" time="11/02/2024" />
       <Match local="Newcastle" away="Luton" date="Today" time="10:00" />
     </div>
   );

@@ -25,50 +25,54 @@ app.use(express.urlencoded({ extended: true }));
 const myTeam = ["arsenal-2", "barcelona-5"];
 
 app.get("/", async (req, res) => {
-  const results = await axios.get(`${process.env.ARSENAL}${myTeam[1]}`);
-  const $ = cheerio.load(results.data);
+  try {
+    const results = await axios.get(`${process.env.ARSENAL}${myTeam[1]}`);
+    const $ = cheerio.load(results.data);
 
-  // ======    Get next match
-  const teamsToPlay = $(
-    ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
-  );
+    // ======    Get next match
+    const teamsToPlay = $(
+      ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
+    );
 
-  const teams = [];
-  for (const i of teamsToPlay) {
-    teams.push($(i).text());
+    const teams = [];
+    for (const i of teamsToPlay) {
+      teams.push($(i).text());
+    }
+
+    console.log(teams[2], teams[3]);
+
+    // ====== Get next match date
+
+    const dates = [];
+    const dateClass = $(".title-8-bold");
+    for (const i of dateClass) {
+      dates.push($(i).text());
+    }
+    const date = dates[1];
+    console.log(date);
+
+    // ====== Get next match time
+
+    const timeClass = $(".SimpleMatchCard_simpleMatchCard__infoMessage___NJqW");
+
+    const times = [];
+    for (const i of timeClass) {
+      times.push($(i).text());
+    }
+    const time = times[1];
+    console.log(time);
+
+    res.status(200).json({
+      title: "Next Match",
+      localTeam: teams[2],
+      awayTeam: teams[3],
+      date: date,
+      time: time,
+      success: true,
+    });
+  } catch (error) {
+    console.error(error);
   }
-
-  console.log(teams[2], teams[3]);
-
-  // ====== Get next match date
-
-  const dates = [];
-  const dateClass = $(".title-8-bold");
-  for (const i of dateClass) {
-    dates.push($(i).text());
-  }
-  const date = dates[1];
-  console.log(date);
-
-  // ====== Get next match time
-
-  const timeClass = $(".SimpleMatchCard_simpleMatchCard__infoMessage___NJqW");
-
-  const times = [];
-  for (const i of timeClass) {
-    times.push($(i).text());
-  }
-  const time = times[1];
-  console.log(time);
-
-  res.status(200).json({
-    title: "Next Match",
-    localTeam: teams[2],
-    awayTeam: teams[3],
-    date: date,
-    time: time,
-    success: true,
-  });
 });
 
 app.listen(PORT, () => {

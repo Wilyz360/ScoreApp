@@ -18,8 +18,8 @@ function App() {
       }
       setLoading(false);
     };
+
     fetchData();
-    //console.log(team);
   }, []);
 
   return (
@@ -28,9 +28,17 @@ function App() {
       {!loading && (
         <div>
           <h1>Next Match</h1>
-          {teams.map((data) => {
-            return <Match teams={data} />;
-          })}
+
+          {teams
+            .filter((team) => team.live === true)
+            .map((team) => {
+              return <Match teams={team} />;
+            })}
+          {teams
+            .filter((team) => team.live === false)
+            .map((team) => {
+              return <Match teams={team} />;
+            })}
         </div>
       )}
     </div>

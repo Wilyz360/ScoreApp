@@ -6,14 +6,13 @@
 
 .match-container {
   display: flex;
-
   /* justify-content: center;
   align-items: center;
   height: 100vh; */
 }
 
 .match-card {
-  width: 25%;
+  width: 40%;
   background-color: #fff;
   border-radius: 10px;
   padding: 20px;
@@ -29,6 +28,7 @@
 }
 
 .team {
+  flex: 1;
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 10px;
@@ -38,4 +38,11 @@
   font-size: 18px;
   color: #555;
   text-align: right;
+}
+
+.scores {
+  display: inline-block;
+  font-weight: normal;
+  width: 200px;
+  align-items: end;
 }

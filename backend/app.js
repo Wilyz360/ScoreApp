@@ -26,10 +26,13 @@ const myTeam = [
   "arsenal-2",
   "barcelona-5",
   "real-madrid-26",
-  "juventus-17",
   "liverpool-18",
+  "chelsea-9",
   "newcastle-united-207",
-  "valencia-143",
+  "brighton-hove-albion-670",
+  "manchester-united-21",
+  "milan-23",
+  "juventus-17",
 ];
 
 const createMatch = {
@@ -38,74 +41,177 @@ const createMatch = {
   awayTeam: "",
   localScore: undefined,
   awayScore: undefined,
+  localImage: "",
+  awaitImage: "",
   date: "",
   time: "",
   live: false,
-  success: false,
 };
 
-app.get("/", async (req, res) => {
-  const allMatches = [];
+app.get("/live", async (req, res) => {
+  const Live = [];
   for (const i of myTeam) {
     const newMatch = Object.create(createMatch);
     try {
       const results = await axios.get(`${process.env.ARSENAL}${i}`);
       const $ = cheerio.load(results.data);
 
-      // ======    Get next match teams
+      // ======    Get next match
       const teamsToPlay = $(
         ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
       );
 
-      let teams = [];
-      for (const i of teamsToPlay) {
-        teams.push($(i).text());
+      newMatch.title = "Live Match"; // obj
+
+      newMatch.localTeam = $(teamsToPlay[0]).text();
+      newMatch.awayTeam = $(teamsToPlay[1]).text(); // obj
+
+      // ===== Get teams images
+
+      const imageClass = $(".ImageWithSets_of-image__ovnCW");
+
+      const images = [];
+
+      // select img from source
+      imageClass.each(function (i, element) {
+        const a = $(this);
+        const image = a
+          .find(".ImageWithSets_of-image__picture__4hzsN")
+          .find("source")
+          .attr("srcset");
+        images.push(image);
+      });
+
+      newMatch.localImage = images[0];
+      newMatch.awayImage = images[1];
+
+      // ====== Get live time
+
+      const dateClass = $(".title-8-bold");
+
+      newMatch.date = $(dateClass[0]).text();
+
+      // check if it is halftime
+      const halfTimeClass = $(".title-8-medium");
+
+      const halfTime = $(halfTimeClass[0]).text();
+
+      if (halfTime == "Half time") {
+        newMatch.date = "Half time";
       }
+      // // ====== Get game score
 
-      if (teams[2] == undefined) {
-        newMatch.title = "Live Match"; // obj
+      const scoreClass = $(
+        ".SimpleMatchCardTeam_simpleMatchCardTeam__score__UYMc_"
+      );
 
-        console.log(teams[0], teams[1]);
+      newMatch.localScore = $(scoreClass[0]).text();
+      newMatch.awayScore = $(scoreClass[1]).text();
 
-        newMatch.localTeam = teams[0]; // obj
-        newMatch.awayTeam = teams[1]; // obj
+      // ===== Live
+      newMatch.live = true;
+      if (newMatch.date.length < 4 || halfTime == "Half time") {
+        Live.push(newMatch);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  res.status(200).json(Live);
+});
 
-        // // ====== Get next match date
+app.get("/results", async (req, res) => {
+  const Results = [];
+  for (const i of myTeam) {
+    const newMatch = Object.create(createMatch);
+    try {
+      const results = await axios.get(`${process.env.ARSENAL}${i}`);
+      const $ = cheerio.load(results.data);
 
-        const dates = [];
-        const dateClass = $(".title-8-bold");
-        for (const i of dateClass) {
-          dates.push($(i).text());
-        }
-        const date = dates[0];
-        console.log(date);
-        newMatch.date = date; // obj
+      // ======    Get match teams
+      const teamsToPlay = $(
+        ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
+      );
 
-        // // ====== Get next match time
+      newMatch.localTeam = $(teamsToPlay[0]).text();
+      newMatch.awayTeam = $(teamsToPlay[1]).text();
 
-        const scoreClass = $(
-          ".SimpleMatchCardTeam_simpleMatchCardTeam__score__UYMc_"
-        );
-        const scores = [];
-        for (const i of scoreClass) {
-          scores.push($(i).text());
-        }
+      // ===== Get teams images
 
-        console.log(scores[0], scores[1]);
-        newMatch.localScore = scores[0];
-        newMatch.awayScore = scores[1];
+      const imageClass = $(".ImageWithSets_of-image__ovnCW");
 
-        // ===== Live
-        newMatch.live = true;
-        newMatch.success = true;
+      newMatch.localImage = $(imageClass[0])
+        .find(".ImageWithSets_of-image__picture__4hzsN")
+        .find("source")
+        .attr("srcset");
 
-        allMatches.push(newMatch);
-      } else {
-        newMatch.title = "Next Match"; // obj
+      newMatch.awayImage = $(imageClass[1])
+        .find(".ImageWithSets_of-image__picture__4hzsN")
+        .find("source")
+        .attr("srcset");
 
-        console.log(teams[2], teams[3]);
-        newMatch.localTeam = teams[2]; // obj
-        newMatch.awayTeam = teams[3]; // obj
+      // if date.length is greater than 4 then add to results
+
+      const dateClass = $(".title-8-bold");
+      const date = $(dateClass[0]).text();
+      console.log(date);
+      newMatch.date = date.length; // obj
+
+      // ==== get game score results
+
+      const scoreClass = $(
+        ".SimpleMatchCardTeam_simpleMatchCardTeam__score__UYMc_"
+      );
+
+      newMatch.localScore = $(scoreClass[0]).text();
+      newMatch.awayScore = $(scoreClass[1]).text();
+
+      newMatch.live = true; // obj
+
+      if (newMatch.date <= 10) {
+        Results.push(newMatch);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  res.status(200).json(Results);
+});
+
+app.get("/upcoming", async (req, res) => {
+  const upcoming = [];
+  for (const i of myTeam) {
+    const newMatch = Object.create(createMatch);
+    try {
+      const results = await axios.get(`${process.env.ARSENAL}${i}`);
+      const $ = cheerio.load(results.data);
+
+      // ======    Get match teams
+      const teamsToPlay = $(
+        ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
+      );
+
+      const isNext = $(teamsToPlay[2]).text();
+
+      // ===== Get next match teams
+      newMatch.title = "Next Match"; // obj
+      if (isNext !== undefined) {
+        newMatch.localTeam = $(teamsToPlay[2]).text(); // obj
+        newMatch.awayTeam = $(teamsToPlay[3]).text(); // obj
+
+        // ===== Get teams images
+
+        const imageClass = $(".ImageWithSets_of-image__ovnCW");
+
+        newMatch.localImage = $(imageClass[2])
+          .find(".ImageWithSets_of-image__picture__4hzsN")
+          .find("source")
+          .attr("srcset");
+
+        newMatch.awayImage = $(imageClass[3])
+          .find(".ImageWithSets_of-image__picture__4hzsN")
+          .find("source")
+          .attr("srcset");
 
         // ====== Get next match date
 
@@ -114,7 +220,9 @@ app.get("/", async (req, res) => {
         for (const i of dateClass) {
           dates.push($(i).text());
         }
-        const date = dates[1];
+
+        let date = $(dateClass[1]).text();
+
         console.log(date);
         newMatch.date = date; // obj
 
@@ -124,83 +232,46 @@ app.get("/", async (req, res) => {
           ".SimpleMatchCard_simpleMatchCard__infoMessage___NJqW"
         );
 
-        const times = [];
-        for (const i of timeClass) {
-          times.push($(i).text());
+        let time = $(timeClass[1]).text();
+        if (time == undefined) {
+          (newMatch.time = ""), (newMatch.date = "Postponed");
+        } else {
+          newMatch.time = time; // obj
         }
-        const time = times[1];
         console.log(time);
-        newMatch.time = time; // obj
 
         newMatch.live = false;
 
-        newMatch.success = true; // obj
-
-        allMatches.push(newMatch);
+        upcoming.push(newMatch);
       }
     } catch (error) {
       console.error(error);
     }
   }
-  res.status(200).json(allMatches);
+  res.status(200).json(upcoming);
 });
 
-const newCastle = "newcastle-united-207";
-
-app.get("/liveNow", async (req, res) => {
-  const newMatch = Object.create(createMatch);
+app.get("/img", async (req, res) => {
   try {
-    const results = await axios.get(`${process.env.ARSENAL}${newCastle}`);
+    const results = await axios.get(`${process.env.ARSENAL}${myTeam[0]}`);
     const $ = cheerio.load(results.data);
 
-    // ======    Get next match
-    const teamsToPlay = $(
-      ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
-    );
+    // ======    Get images teams
+    const imageClass = $(".ImageWithSets_of-image__ovnCW");
 
-    newMatch.title = "Live Match"; // obj
+    const images = [];
 
-    const teams = [];
-    for (const i of teamsToPlay) {
-      teams.push($(i).text());
-    }
+    // select img from source
+    imageClass.each(function (i, element) {
+      const a = $(this);
+      const image = a
+        .find(".ImageWithSets_of-image__picture__4hzsN")
+        .find("source")
+        .attr("srcset");
+      images.push(image);
+    });
 
-    console.log(teams[0], teams[1]);
-    newMatch.localTeam = teams[0]; // obj
-    newMatch.awayTeam = teams[1]; // obj
-
-    // // ====== Get next match date
-
-    const dates = [];
-    const dateClass = $(".title-8-bold");
-    for (const i of dateClass) {
-      dates.push($(i).text());
-    }
-    const date = dates[0];
-    console.log(date);
-    newMatch.date = date; // obj
-
-    // // ====== Get next match time
-
-    const scoreClass = $(
-      ".SimpleMatchCardTeam_simpleMatchCardTeam__score__UYMc_"
-    );
-    const scores = [];
-    for (const i of scoreClass) {
-      scores.push($(i).text());
-    }
-
-    console.log(scores[0], scores[1]);
-    newMatch.localScore = scores[0];
-    newMatch.awayScore = scores[1];
-
-    // ===== Live
-    newMatch.live = true;
-    newMatch.success = true;
-
-    allMatches.push(newMatch);
-
-    res.status(200).json({ newMatch });
+    res.json({ img1: images[0], img2: images[1] });
   } catch (error) {
     console.error(error);
   }

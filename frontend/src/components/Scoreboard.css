@@ -1,0 +1,55 @@
+.scoreboard {
+  /* background-color: aliceblue; */
+  font-family: "Vina Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: aliceblue;
+  text-shadow: 3px 3px 5px black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* width: 400px; */
+  /* margin: 20px auto; */
+  margin: 10px;
+  border: 2px solid #ccc;
+  padding: 10px;
+}
+
+.team {
+  flex: 1;
+  /* text-align: center; */
+}
+
+.local-team {
+  font-size: 40px;
+  text-align: right;
+}
+
+.away-team {
+  font-size: 40px;
+  text-align: left;
+}
+
+.score {
+  flex: 1;
+  text-align: center;
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.live-time {
+  flex: 1;
+  text-align: center;
+  font-size: 35px;
+  /* color: #138e00; */
+}
+
+/* .match-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 400px;
+  margin: 10px;
+  border: 2px solid #ccc;
+  padding: 10px;
+} */

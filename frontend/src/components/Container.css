@@ -1,0 +1,12 @@
+.row-game {
+  font-size: 25px;
+  position: relative;
+  margin-top: 15px;
+  margin-left: 15px;
+}
+
+.font_text {
+  font-family: "Frijole", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}

@@ -42,10 +42,9 @@ const createMatch = {
   localScore: undefined,
   awayScore: undefined,
   localImage: "",
-  awaitImage: "",
+  awayImage: "",
   date: "",
   time: "",
-  live: false,
 };
 
 app.get("/live", async (req, res) => {
@@ -56,34 +55,35 @@ app.get("/live", async (req, res) => {
       const results = await axios.get(`${process.env.ARSENAL}${i}`);
       const $ = cheerio.load(results.data);
 
+      // === Title
+      newMatch.title = "Live";
+
       // ======    Get next match
       const teamsToPlay = $(
         ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
       );
 
-      newMatch.title = "Live Match"; // obj
-
       newMatch.localTeam = $(teamsToPlay[0]).text();
       newMatch.awayTeam = $(teamsToPlay[1]).text(); // obj
+
+      console.log(newMatch.title + " teams readed");
 
       // ===== Get teams images
 
       const imageClass = $(".ImageWithSets_of-image__ovnCW");
 
-      const images = [];
+      // === Select image from source
 
-      // select img from source
-      imageClass.each(function (i, element) {
-        const a = $(this);
-        const image = a
-          .find(".ImageWithSets_of-image__picture__4hzsN")
-          .find("source")
-          .attr("srcset");
-        images.push(image);
-      });
+      newMatch.localImage = $(imageClass[0])
+        .find(".ImageWithSets_of-image__picture__4hzsN")
+        .find("source")
+        .attr("srcset");
+      newMatch.awayImage = $(imageClass[1])
+        .find(".ImageWithSets_of-image__picture__4hzsN")
+        .find("source")
+        .attr("srcset");
 
-      newMatch.localImage = images[0];
-      newMatch.awayImage = images[1];
+      console.log(newMatch.title + " images readed");
 
       // ====== Get live time
 
@@ -99,7 +99,10 @@ app.get("/live", async (req, res) => {
       if (halfTime == "Half time") {
         newMatch.date = "Half time";
       }
-      // // ====== Get game score
+
+      console.log(newMatch.title + " date readed");
+
+      // // ====== Get live game score
 
       const scoreClass = $(
         ".SimpleMatchCardTeam_simpleMatchCardTeam__score__UYMc_"
@@ -108,8 +111,9 @@ app.get("/live", async (req, res) => {
       newMatch.localScore = $(scoreClass[0]).text();
       newMatch.awayScore = $(scoreClass[1]).text();
 
+      console.log(newMatch.title + " live scores readed");
+
       // ===== Live
-      newMatch.live = true;
       if (newMatch.date.length < 4 || halfTime == "Half time") {
         Live.push(newMatch);
       }
@@ -128,6 +132,9 @@ app.get("/results", async (req, res) => {
       const results = await axios.get(`${process.env.ARSENAL}${i}`);
       const $ = cheerio.load(results.data);
 
+      // ====== Title
+      newMatch.title = "Results";
+
       // ======    Get match teams
       const teamsToPlay = $(
         ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
@@ -135,6 +142,8 @@ app.get("/results", async (req, res) => {
 
       newMatch.localTeam = $(teamsToPlay[0]).text();
       newMatch.awayTeam = $(teamsToPlay[1]).text();
+
+      console.log(`${newMatch.title}: teams readed`);
 
       // ===== Get teams images
 
@@ -150,12 +159,15 @@ app.get("/results", async (req, res) => {
         .find("source")
         .attr("srcset");
 
+      console.log(`${newMatch.title}: images readed`);
+
       // if date.length is greater than 4 then add to results
 
       const dateClass = $(".title-8-bold");
       const date = $(dateClass[0]).text();
-      console.log(date);
       newMatch.date = date.length; // obj
+
+      console.log(`${newMatch.title}: date readed`);
 
       // ==== get game score results
 
@@ -166,7 +178,7 @@ app.get("/results", async (req, res) => {
       newMatch.localScore = $(scoreClass[0]).text();
       newMatch.awayScore = $(scoreClass[1]).text();
 
-      newMatch.live = true; // obj
+      console.log(`${newMatch.title}: scores readed`);
 
       if (newMatch.date <= 10) {
         Results.push(newMatch);
@@ -186,6 +198,9 @@ app.get("/upcoming", async (req, res) => {
       const results = await axios.get(`${process.env.ARSENAL}${i}`);
       const $ = cheerio.load(results.data);
 
+      // ====== Title
+      newMatch.title = "Upcoming";
+
       // ======    Get match teams
       const teamsToPlay = $(
         ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
@@ -198,6 +213,8 @@ app.get("/upcoming", async (req, res) => {
       if (isNext !== undefined) {
         newMatch.localTeam = $(teamsToPlay[2]).text(); // obj
         newMatch.awayTeam = $(teamsToPlay[3]).text(); // obj
+
+        console.log(`${newMatch.title}: teams readed`);
 
         // ===== Get teams images
 
@@ -213,18 +230,15 @@ app.get("/upcoming", async (req, res) => {
           .find("source")
           .attr("srcset");
 
+        console.log(`${newMatch.title}: images readed`);
+
         // ====== Get next match date
 
-        const dates = [];
         const dateClass = $(".title-8-bold");
-        for (const i of dateClass) {
-          dates.push($(i).text());
-        }
-
         let date = $(dateClass[1]).text();
-
-        console.log(date);
         newMatch.date = date; // obj
+
+        console.log(`${newMatch.title}: date readed`);
 
         // ====== Get next match time
 
@@ -238,9 +252,7 @@ app.get("/upcoming", async (req, res) => {
         } else {
           newMatch.time = time; // obj
         }
-        console.log(time);
-
-        newMatch.live = false;
+        console.log(`${newMatch.title}: time readed`);
 
         upcoming.push(newMatch);
       }
@@ -249,32 +261,6 @@ app.get("/upcoming", async (req, res) => {
     }
   }
   res.status(200).json(upcoming);
-});
-
-app.get("/img", async (req, res) => {
-  try {
-    const results = await axios.get(`${process.env.ARSENAL}${myTeam[0]}`);
-    const $ = cheerio.load(results.data);
-
-    // ======    Get images teams
-    const imageClass = $(".ImageWithSets_of-image__ovnCW");
-
-    const images = [];
-
-    // select img from source
-    imageClass.each(function (i, element) {
-      const a = $(this);
-      const image = a
-        .find(".ImageWithSets_of-image__picture__4hzsN")
-        .find("source")
-        .attr("srcset");
-      images.push(image);
-    });
-
-    res.json({ img1: images[0], img2: images[1] });
-  } catch (error) {
-    console.error(error);
-  }
 });
 
 app.listen(PORT, () => {

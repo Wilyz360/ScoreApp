@@ -7,19 +7,19 @@ export const Scoreboard = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const getNewData = async () => {
+    try {
+      const { data: response } = await axios.get("http://localhost:4000/live");
+      setData(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const { data: response } = await axios.get(
-          "http://localhost:4000/live"
-        );
-        setData(response);
-      } catch (error) {
-        console.error(error);
-      }
-      setLoading(false);
-    })();
+    //setInterval(() => {
+    getNewData();
+    // }, 100000);
   }, []);
 
   return (
@@ -27,36 +27,35 @@ export const Scoreboard = () => {
       <div className="text-center font_text">
         <h1>Live</h1>
       </div>
-      {loading && (
+      {/* {loading && (
         <div className="spinner-border" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
-      )}
-      {!loading &&
-        data.map((team) => {
-          return (
-            <div className="shadow scoreboard rounded">
-              <div className="team away-team">
-                <div style={{ display: "inline" }}>
-                  <img alt=" " srcset={team.localImage} />
-                </div>
-                {team.localTeam}
+      )} */}
+      {data.map((team, indx) => {
+        return (
+          <div className="shadow scoreboard rounded" key={indx}>
+            <div className="team away-team">
+              <div style={{ display: "inline" }}>
+                <img alt=" " srcset={team.localImage} />
               </div>
-              <div className="score">
-                <div>
-                  {team.localScore} - {team.awayScore}{" "}
-                </div>
-                <div className="live-time">{team.date}</div>
-              </div>
-              <div className="team local-team">
-                <div style={{ display: "inline" }}>
-                  <img alt="" srcset={team.awayImage} />
-                </div>
-                {team.awayTeam}
-              </div>
+              {team.localTeam}
             </div>
-          );
-        })}
+            <div className="score">
+              <div>
+                {team.localScore} - {team.awayScore}{" "}
+              </div>
+              <div className="live-time">{team.date}</div>
+            </div>
+            <div className="team local-team">
+              <div style={{ display: "inline" }}>
+                <img alt="" srcset={team.awayImage} />
+              </div>
+              {team.awayTeam}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

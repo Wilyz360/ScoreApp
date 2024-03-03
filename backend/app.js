@@ -32,7 +32,7 @@ const myTeam = [
   "brighton-hove-albion-670",
   "manchester-united-21",
   "milan-23",
-  "juventus-17",
+  "atletico-de-madrid-3",
 ];
 
 const createMatch = {
@@ -90,6 +90,7 @@ app.get("/live", async (req, res) => {
       const dateClass = $(".title-8-bold");
 
       newMatch.date = $(dateClass[0]).text();
+      console.log("date", newMatch.date);
 
       // check if it is halftime
       const halfTimeClass = $(".title-8-medium");
@@ -135,52 +136,51 @@ app.get("/results", async (req, res) => {
       // ====== Title
       newMatch.title = "Results";
 
-      // ======    Get match teams
-      const teamsToPlay = $(
-        ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
+      const timeClass = $(
+        ".SimpleMatchCard_simpleMatchCard__infoMessage___NJqW"
       );
 
-      newMatch.localTeam = $(teamsToPlay[0]).text();
-      newMatch.awayTeam = $(teamsToPlay[1]).text();
+      let time = $(timeClass[0]).text();
 
-      console.log(`${newMatch.title}: teams readed`);
+      if (time === "Full time" || time === "Pens") {
+        // ======    Get match teams
+        const teamsToPlay = $(
+          ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
+        );
 
-      // ===== Get teams images
+        newMatch.localTeam = $(teamsToPlay[0]).text();
+        newMatch.awayTeam = $(teamsToPlay[1]).text();
 
-      const imageClass = $(".ImageWithSets_of-image__ovnCW");
+        console.log(`${newMatch.title}: teams readed`);
 
-      newMatch.localImage = $(imageClass[0])
-        .find(".ImageWithSets_of-image__picture__4hzsN")
-        .find("source")
-        .attr("srcset");
+        // ===== Get teams images
 
-      newMatch.awayImage = $(imageClass[1])
-        .find(".ImageWithSets_of-image__picture__4hzsN")
-        .find("source")
-        .attr("srcset");
+        const imageClass = $(".ImageWithSets_of-image__ovnCW");
 
-      console.log(`${newMatch.title}: images readed`);
+        newMatch.localImage = $(imageClass[0])
+          .find(".ImageWithSets_of-image__picture__4hzsN")
+          .find("source")
+          .attr("srcset");
 
-      // if date.length is greater than 4 then add to results
+        newMatch.awayImage = $(imageClass[1])
+          .find(".ImageWithSets_of-image__picture__4hzsN")
+          .find("source")
+          .attr("srcset");
 
-      const dateClass = $(".title-8-bold");
-      const date = $(dateClass[0]).text();
-      newMatch.date = date.length; // obj
+        console.log(`${newMatch.title}: images readed`);
 
-      console.log(`${newMatch.title}: date readed`);
+        // ==== get game score results
 
-      // ==== get game score results
+        const scoreClass = $(
+          ".SimpleMatchCardTeam_simpleMatchCardTeam__score__UYMc_"
+        );
 
-      const scoreClass = $(
-        ".SimpleMatchCardTeam_simpleMatchCardTeam__score__UYMc_"
-      );
+        newMatch.localScore = $(scoreClass[0]).text();
+        newMatch.awayScore = $(scoreClass[1]).text();
 
-      newMatch.localScore = $(scoreClass[0]).text();
-      newMatch.awayScore = $(scoreClass[1]).text();
+        console.log(`${newMatch.title}: scores readed`);
 
-      console.log(`${newMatch.title}: scores readed`);
-
-      if (newMatch.date <= 10) {
+        // ===== Push result match to Results obj
         Results.push(newMatch);
       }
     } catch (error) {
@@ -206,11 +206,12 @@ app.get("/upcoming", async (req, res) => {
         ".SimpleMatchCardTeam_simpleMatchCardTeam__name__7Ud8D"
       );
 
-      const isNext = $(teamsToPlay[2]).text();
+      const isNext = $(teamsToPlay[2]).text(); // use to check if next game is vesible is the website
 
       // ===== Get next match teams
       newMatch.title = "Next Match"; // obj
-      if (isNext !== undefined) {
+
+      if (isNext !== "") {
         newMatch.localTeam = $(teamsToPlay[2]).text(); // obj
         newMatch.awayTeam = $(teamsToPlay[3]).text(); // obj
 

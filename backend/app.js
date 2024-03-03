@@ -7,21 +7,6 @@ require("dotenv").config();
 const app = express();
 const PORT = 4000;
 
-// middleware
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// endpoints
-
 const myTeam = [
   "arsenal-2",
   "barcelona-5",
@@ -46,6 +31,27 @@ const createMatch = {
   date: "",
   time: "",
 };
+
+// middleware
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(function (req, res, next) {
+  console.log(
+    req.method + " " + req.path + " - " + req.ip + " - " + Date.now()
+  );
+  next();
+});
+
+// endpoints
 
 app.get("/live", async (req, res) => {
   const Live = [];
@@ -88,9 +94,7 @@ app.get("/live", async (req, res) => {
       // ====== Get live time
 
       const dateClass = $(".title-8-bold");
-
       newMatch.date = $(dateClass[0]).text();
-      console.log("date", newMatch.date);
 
       // check if it is halftime
       const halfTimeClass = $(".title-8-medium");
@@ -249,10 +253,17 @@ app.get("/upcoming", async (req, res) => {
 
         let time = $(timeClass[1]).text();
         if (time == undefined) {
+          // if timeClass is empty it will be no game to play on that date
           (newMatch.time = ""), (newMatch.date = "Postponed");
         } else {
           newMatch.time = time; // obj
         }
+
+        if (date === time) {
+          // date has the same name class and time and this happens when the game is schedule for tomorrow
+          newMatch.date = "Tomorrow";
+        }
+
         console.log(`${newMatch.title}: time readed`);
 
         upcoming.push(newMatch);
